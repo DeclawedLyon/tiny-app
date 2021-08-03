@@ -47,11 +47,19 @@ app.get('/urls/new', (req, res) => {
   res.render("urls_new");
 })
 app.post("/urls", (req, res) => {
-  console.log(req.body);
-  shortURL = generateRandomString();  // Log the POST request body to the console
-  console.log(shortURL)
-  let newObject = {shortURL: shortURL}
+  const short = generateRandomString();
+  const long = req.body.longURL;
+  console.log(long);
+  const newObject = {}
+  if (!newObject[short]) {
+    newObject[short] = long;
+  }
   console.log(newObject);
+  
+  // const newObject = {req.body["longURL"]: shortURL}
+  // console.log(shortURL)
+  // let newObject = {shortURL: shortURL}
+  // console.log(newObject);
   res.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
