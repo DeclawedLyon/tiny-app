@@ -5,7 +5,7 @@ app.set('view engine', 'ejs')
 
 
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
+  "b2xVn2": "https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow",
   "9sm5xK": "http://www.google.com"
 }
 
