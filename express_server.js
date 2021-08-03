@@ -47,20 +47,28 @@ app.get('/urls/new', (req, res) => {
   res.render("urls_new");
 })
 app.post("/urls", (req, res) => {
-  const short = generateRandomString();
+  const short = 'xyzzyx'//generateRandomString();
   const long = req.body.longURL;
-  console.log(long);
-  const newObject = {}
+  const newObject = {};
   if (!newObject[short]) {
     newObject[short] = long;
   }
-  console.log(newObject);
-  
-  // const newObject = {req.body["longURL"]: shortURL}
-  // console.log(shortURL)
-  // let newObject = {shortURL: shortURL}
-  // console.log(newObject);
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  if(!urlDatabase[short]) {
+    urlDatabase[short] = long;
+  }
+  // console.log(urlDatabase);
+  res.redirect(`/urls/:${short}`);         // Respond with 'Ok' (we will replace this)
+});
+app.get("/u/:shortURL", (req, res) => {
+  const short =  'xyzzyx'//(req.params.shortURL).toString();
+  console.log(typeof short);
+  console.log(short);
+  console.log("the shortURL is: ",short)
+  console.log(urlDatabase);
+  console.log("the long URL should be: ",urlDatabase[short]);
+
+  const longURL = urlDatabase[short];
+  res.redirect(longURL);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
