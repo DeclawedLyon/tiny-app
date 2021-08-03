@@ -1,12 +1,27 @@
 const express = require('express');
 const app = express();
 const PORT = 8080;
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 app.set('view engine', 'ejs')
+
 
 
 const urlDatabase = {
   "b2xVn2": "https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow",
   "9sm5xK": "http://www.google.com"
+}
+
+function generateRandomString() {
+  const alphaNumeric = ["a", 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  let randomString = "";
+  for (let i = 0; i < 6; i++) {
+    let randomInt = Math.floor(Math.random() * 36);
+    // console.log(alphaNumeric[randomInt])
+    randomString += alphaNumeric[randomInt];
+  }
+  // console.log(randomString);
+  return randomString;
 }
 
 app.get('/', (req, res) => {
@@ -20,11 +35,6 @@ app.get("/hello", (req, res) => {
   const templateVars = { greeting: 'Hello World!' };
   res.render("hello_world", templateVars);
 });
-app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]/* What goes here? */ };
-  res.render("urls_show", templateVars);
-  // res.send(req.params);
-})
 
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
@@ -32,6 +42,23 @@ app.get('/urls.json', (req, res) => {
 app.get("/urls", (req,res) => {
   const templateVars = { urls: urlDatabase };
   res.render ("urls_index", templateVars);
+})
+app.get('/urls/new', (req, res) => {
+  res.render("urls_new");
+})
+app.post("/urls", (req, res) => {
+  console.log(req.body);
+  shortURL = generateRandomString();  // Log the POST request body to the console
+  console.log(shortURL)
+  let newObject = {shortURL: shortURL}
+  console.log(newObject);
+  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+});
+
+app.get("/urls/:shortURL", (req, res) => {
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]/* What goes here? */ };
+  res.render("urls_show", templateVars);
+  // res.send(req.params);
 })
 
 app.listen(PORT, () => {
