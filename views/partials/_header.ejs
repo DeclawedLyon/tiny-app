@@ -13,20 +13,24 @@
       <div class="navbar-nav">
         <a class="nav-item nav-link" href="/urls">My URLS</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
-        <% if(!username) { %>
-          <a class="nav-item nav-link" method="POST" href="/login">Login</a>
+        <% if(!user[id]) { %>
+          <a class="nav-item nav-link" method="POST" href="/register">Register</a>
 
         <% } %>
       </div>
 
     </div>
-
-
-    <%if(username) {console.log(username)%>
-      <form action="/logout" method="POST" class="form-inline">
-        <a class="navbar-brand" style="padding-left: 100px;">Logged in as: <span style="color: rgba(255, 255, 255, 0.9); font-size: 20px; padding: 3px;"><%= username %></span></a>
-        <button type="submit" class="btn btn-outline-dark">Logout</button>
-      </form>
+    
+    <%if(user[id]) {%>
+      <% for (const data in user[id]) { %>
+        <% if (data === "email") { %>
+          
+          <form action="/logout" method="POST" class="form-inline">
+            <a class="navbar-brand" style="padding-left: 100px;">Logged in as: <span style="color: rgba(255, 255, 255, 0.9); font-size: 20px; padding: 3px;"><%= user[id][data] %></span></a>
+            <button type="submit" class="btn btn-outline-dark">Logout</button>
+          </form>
+          <% } %>
+      <% } %>
       <% } else { %>
         <form action="/login" method="POST" >
           <input class="" type="text" name="username" placeholder="Username">
