@@ -99,6 +99,14 @@ app.get("urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 })
 
+app.get("/login", (req, res) => {
+  const templateVars = {
+    user: userDatabase,
+    id: req.cookies.user_id
+  };
+  res.render("login", templateVars);
+})
+
 app.post("/urls", (req, res) => {
   const short = generateRandomString();
   const long = req.body.longURL;
@@ -136,16 +144,11 @@ app.post("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 })
 
-app.post("/login", (req, res) => {
-  res.cookie("user", req.body.username);
-  res.redirect("/urls");
-})
 
 app.post("/logout", (req, res) => {
   res.clearCookie("user_id");
   res.redirect("/urls");
 })
-
 
 app.post("/register", (req, res) => {
   const id = generateRandomString();
@@ -168,6 +171,25 @@ app.post("/register", (req, res) => {
   }
   res.cookie("user_id", id);
   res.redirect("urls")
+})
+
+app.post("/login", (req,res) => {
+  const email = req.body.email;
+  const user = findUser(userDatabase, email);
+  const id = user.id;
+  if (!req.body.email) {
+    res.statusCode = 403;
+    res.redirect('/oops');
+  } else if (req.body.password !== user.password) {
+    res.statusCode = 403;
+    res.redirect('/oops');
+  }
+  // console.log("the id is: ", user.id)
+  // console.log(email, password);
+  res.cookie("user_id", id);
+
+  // console.log("WELL DONE MY YOUNG PADAWAN")
+  res.redirect("/urls")
 })
 
 app.listen(PORT, () => {
