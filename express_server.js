@@ -22,7 +22,7 @@ const urlDatabase = {
   },
   aid92j: {
     longURL: "www.lighthouselabs.com",
-    userId: "testUser"
+    userID: "testUser"
   }
 }
 
@@ -102,7 +102,7 @@ app.get("/register", (req, res) => {
 })
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log('anything')
+  // console.log('anything')
 
   const short =  req.params.shortURL
   const longURL = urlDatabase[short].longURL;
@@ -110,7 +110,7 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  console.log("anything here?")
+  // console.log("anything here?")
   const shortURL = req.params.shortURL;
   const templateVars = { 
     shortURL: req.params.shortURL, 
@@ -134,21 +134,24 @@ app.post("/urls", (req, res) => {
   const long = req.body.longURL;
   const newObject = {};
   const user = req.cookies.user_id;
-  console.log(user);
+  // console.log(user);
   // console.log(req.body.longURL)
+  if(!user) {
+    res.redirect('/login')
+  }
   if (!newObject[short]) {
     newObject[short] = {
       longURL: long,
-      user: user
+      userID: user
     }
   }
   if(!urlDatabase[short]) {
     urlDatabase[short] = {
       longURL: long,
-      user: user
+      userID: user
     }
   }
-  console.log(urlDatabase)
+  // console.log(urlDatabase)
   // console.log(short);
   // console.log("what's happening?")
   res.redirect(`/urls/${short}`);
@@ -168,7 +171,7 @@ app.post("/urls/:shortURL/id", (req, res) => {
 })
 
 app.post("/urls/:shortURL", (req, res) => {
-  console.log("anything here either?")
+  // console.log("anything here either?")
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL], 
