@@ -4,7 +4,7 @@ const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieSession = require('cookie-session');
 const { getUserByEmail, generateRandomString } = require('./helpers');
-
+const { urlDatabase, userDatabase } = require('./data')
 
 app.set('view engine', 'ejs')
 
@@ -14,40 +14,6 @@ app.use(cookieSession({
   keys: ['key1'],
   maxAge: 1 * 60 * 60 * 1000
 }));
-
-
-const urlDatabase = {
-  b2xVn2: { 
-    longURL: "https://www.youtube.com/channel/UCSJ4gkVC6NrvII8umztf0Ow",
-    userID: "userRandomID"
-  },
-  fsm5xK: {
-   longURL: "http://www.google.com",
-   userID: "user2RandomID"
-  },
-  aid92j: {
-    longURL: "www.lighthouselabs.com",
-    userID: "testUser"
-  }
-};
-
-const userDatabase = { 
-  "userRandomID": {
-    id: "userRandomID", 
-    email: "user@example.com", 
-    password: "purple-monkey-dinosaur"
-  },
- "user2RandomID": {
-    id: "user2RandomID", 
-    email: "user2@example.com", 
-    password: "dishwasher-funk"
-  },
-  "testUser": {
-    id: "testUser",
-    email: "a@a.com",
-    password: "dwq"
-  }
-};
 
 app.get('/', (req, res) => {
   res.redirect("/urls");
@@ -63,6 +29,9 @@ app.get("/urls", (req,res) => {
     user: userDatabase,
     id: req.session.user_id
   };
+  if (!req.session.user_id) {
+    res.redirect('/login');
+  }
   res.render ("urls_index", templateVars);
 });
 
@@ -136,6 +105,13 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const short = req.params.shortURL;
+  const user = req.session.user_id;
+  if (!user) {
+    res.redirect('/urls');
+  }
+  if (urlDatabase[short].userID !== user) {
+    res.redirect('/urls')
+  }
   delete urlDatabase[short];
   res.redirect("/urls");
 })
@@ -170,21 +146,25 @@ app.post("/register", (req, res) => {
   const email = req.body.email;
   if (req.body.email === '' || req.body.password === '') {
     res.statusCode = 400;
-    res.redirect('/oops');
-  } else if (getUserByEmail(userDatabase, email)) {
-    res.statusCode = 400;
-    res.redirect('/oops');
-  } else if (!userDatabase[id]) {
-    userDatabase[id] = {
-      id: id,
-      email: email,
-      password: password
-      };
-  } else{
-    res.write("Sorry that username has been taken.");
+    return res.redirect('/register');
   }
+
+  if (getUserByEmail(userDatabase, email)) {
+    res.statusCode = 400;
+    return res.redirect('/register');
+  } 
+
+  if (userDatabase[id]) {
+    return res.write('Sorry that username has been taken.');
+  }
+
+  userDatabase[id] = {
+    id: id,
+    email: email,
+    password: password,
+  };
   req.session.user_id = id;
-  res.redirect("urls");
+  res.redirect('urls');
 })
 
 app.post("/login", (req,res) => {
@@ -193,10 +173,10 @@ app.post("/login", (req,res) => {
   const id = user.id;
   if (!req.body.email) {
     res.statusCode = 403;
-    res.redirect('/oops');
+    res.redirect('/login');
   } else if (req.body.password !== user.password) {
     res.statusCode = 403;
-    res.redirect('/oops');
+    res.redirect('/login');
   };
   req.session.user_id = id;
   res.redirect("/urls");
