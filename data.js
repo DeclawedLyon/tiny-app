@@ -8,7 +8,7 @@ const urlDatabase = {
    userID: "user2RandomID"
   },
   aid92j: {
-    longURL: "www.lighthouselabs.com",
+    longURL: "https://www.lighthouselabs.ca/",
     userID: "testUser"
   }
 };

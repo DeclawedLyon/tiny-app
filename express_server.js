@@ -15,14 +15,17 @@ app.use(cookieSession({
   maxAge: 1 * 60 * 60 * 1000
 }));
 
+/////////////////// GET endpoints ////////////////////
 app.get('/', (req, res) => {
   res.redirect("/urls");
 });
 
+ // show datbase info as json objects
 app.get('/urls.json', (req, res) => {
   res.json(urlDatabase);
 });
 
+// webpage to show all urls belonging to the user
 app.get("/urls", (req,res) => {
   const templateVars = { 
     urls: urlDatabase, 
@@ -30,11 +33,11 @@ app.get("/urls", (req,res) => {
     id: req.session.user_id
   };
   if (!req.session.user_id) {
-    res.redirect('/login');
   }
   res.render ("urls_index", templateVars);
 });
 
+// webpage to show info of newly created URL
 app.get('/urls/new', (req, res) => {
   const templateVars = {
     user: userDatabase,
@@ -46,6 +49,7 @@ app.get('/urls/new', (req, res) => {
   res.render("urls_new", templateVars);
 });
 
+// webpage for registering new user
 app.get("/register", (req, res) => {
   const templateVars = {
     user: userDatabase,
@@ -54,24 +58,33 @@ app.get("/register", (req, res) => {
   res.render("register", templateVars);
 });
 
+// webpage for redirecting users from shortURL to longURL
 app.get("/u/:shortURL", (req, res) => {
-  const short =  req.params.shortURL;
-  const longURL = urlDatabase[short].longURL;
-  console.log(urlDatabase[short].longURL)
-  res.redirect(`${longURL}`);
+  if (!req.session.user_id) {
+    req.session.user_id = generateRandomString();
+  }
+  if (urlDatabase[req.params.shortURL]) {
+    const longURL = urlDatabase[req.params.shortURL].longURL;
+    res.redirect(longURL);
+  } else {
+    return res.status(404).send('Sorry, I can\'t find that page.');
+  }
 });
 
+// webpage for redirecting users from shortURL to longURL
 app.get("/urls/:shortURL", (req, res) => {
-  const shortURL = req.params.shortURL;
-  const templateVars = { 
-    shortURL: req.params.shortURL, 
-    longURL: urlDatabase[shortURL], 
-    user: userDatabase,
-    id: req.session.user_id
-  };
-  res.render("urls_show", templateVars);
+  const thisURL = urlDatabase[req.params.shortURL];
+  const myCookieID = req.session["user_id"];
+  if (myCookieID === thisURL.userID) {
+    const updatedURL = req.body.currentURL;
+    thisURL.longURL = updatedURL;
+    res.redirect('/urls');
+  } else {
+    return res.status(401).send("Sorry, you don't have access to that page!");
+  }
 })
 
+// webpage rendered when user logs in
 app.get("/login", (req, res) => {
   const templateVars = {
     user: userDatabase,
@@ -79,6 +92,8 @@ app.get("/login", (req, res) => {
   };
   res.render("login", templateVars);
 })
+
+/////////////// POST endpoints ////////////////////
 
 app.post("/urls", (req, res) => {
   const short = generateRandomString();
@@ -103,6 +118,7 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${short}`);
 });
 
+//this endpoint will delete a url from the database
 app.post("/urls/:shortURL/delete", (req, res) => {
   const short = req.params.shortURL;
   const user = req.session.user_id;
@@ -116,6 +132,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   res.redirect("/urls");
 })
 
+// this endpoint will create a new shortURL
 app.post("/urls/:shortURL/id", (req, res) => {
   const short = req.params.shortURL;
   const newurl = req.body.newURL;
@@ -134,12 +151,13 @@ app.post("/urls/:shortURL", (req, res) => {
   res.render("urls_show", templateVars);
 })
 
-
+// logout endpoint
 app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/urls");
 })
 
+//register new user endpoint
 app.post("/register", (req, res) => {
   const id = generateRandomString();
   const password = req.body.password;
@@ -148,16 +166,13 @@ app.post("/register", (req, res) => {
     res.statusCode = 400;
     return res.redirect('/register');
   }
-
   if (getUserByEmail(userDatabase, email)) {
     res.statusCode = 400;
     return res.redirect('/register');
   } 
-
   if (userDatabase[id]) {
     return res.write('Sorry that username has been taken.');
   }
-
   userDatabase[id] = {
     id: id,
     email: email,
@@ -167,6 +182,7 @@ app.post("/register", (req, res) => {
   res.redirect('urls');
 })
 
+// login endpoint
 app.post("/login", (req,res) => {
   const email = req.body.email;
   const user = getUserByEmail(userDatabase, email);
