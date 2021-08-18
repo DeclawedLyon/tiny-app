@@ -72,8 +72,8 @@ app.get("/u/:shortURL", (req, res) => {
 // webpage for redirecting users from shortURL to longURL
 app.get("/urls/:shortURL", (req, res) => {
   const thisURL = urlDatabase[req.params.shortURL];
-  const myCookieID = req.session["user_id"];
-  if (myCookieID === thisURL.userID) {
+  const cookie = req.session["user_id"];
+  if (cookie === thisURL.userID) {
     const updatedURL = req.body.currentURL;
     thisURL.longURL = updatedURL;
     res.redirect('/urls');
