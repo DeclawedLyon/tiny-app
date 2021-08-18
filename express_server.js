@@ -33,8 +33,9 @@ app.get("/urls", (req,res) => {
     id: req.session.user_id
   };
   if (!req.session.user_id) {
+    res.redirect('/login');
   }
-  res.render ("urls_index", templateVars);
+  res.render("urls_index", templateVars);
 });
 
 // webpage to show info of newly created URL
@@ -60,9 +61,6 @@ app.get("/register", (req, res) => {
 
 // webpage for redirecting users from shortURL to longURL
 app.get("/u/:shortURL", (req, res) => {
-  if (!req.session.user_id) {
-    req.session.user_id = generateRandomString();
-  }
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
     res.redirect(longURL);
@@ -98,24 +96,16 @@ app.get("/login", (req, res) => {
 app.post("/urls", (req, res) => {
   const short = generateRandomString();
   const long = req.body.longURL;
-  const newObject = {};
   const user = req.session.user_id;
-  if(!user) {
-    res.redirect('/login');
+  if (req.session.user_id) {
+    urlDatabase[short] = { 
+      longURL: long, 
+      userID: user
+    };
+    return res.redirect(`/urls`);
+  } else {
+    return res.status(401).send('You are not authorized to edit this url');
   }
-  if (!newObject[short]) {
-    newObject[short] = {
-      longURL: long,
-      userID: user
-    };
-  };
-  if(!urlDatabase[short]) {
-    urlDatabase[short] = {
-      longURL: long,
-      userID: user
-    };
-  };
-  res.redirect(`/urls/${short}`);
 });
 
 //this endpoint will delete a url from the database
@@ -136,19 +126,30 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 app.post("/urls/:shortURL/id", (req, res) => {
   const short = req.params.shortURL;
   const newurl = req.body.newURL;
-  urlDatabase[short] = newurl;
+  urlDatabase[short].longURL = newurl;
   res.redirect("/urls");
 })
 
-app.post("/urls/:shortURL", (req, res) => {
+app.get("/urls/:shortURL/edit", (req, res) => {
   const templateVars = { 
     shortURL: req.params.shortURL, 
     longURL: urlDatabase[req.params.shortURL], 
-    newURL: req.params.newurl, 
     user: userDatabase,
     id: req.session.user_id
   };
   res.render("urls_show", templateVars);
+});
+
+app.post("/urls/:shortURL", (req, res) => {
+  const shortURL = urlDatabase[req.params.shortURL];
+  const user = req.session["user_id"];
+  if (user === shortURL.userID) {
+    const newURL = req.body.newURL
+    shortURL.longURL = newURL;
+    res.redirect('/urls')
+  } else {
+    return res.redirect("You don't have permission to edit that URL");
+  }
 })
 
 // logout endpoint
